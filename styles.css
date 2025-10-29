@@ -655,3 +655,29 @@ body.crosswalk .crosswalk-box {
   /* 살짝 입체감 */
   transform: translateX(-50%) translateY(4px);
 }
+
+/* Info page: mobile에서 따라오는 고정 프레임 비활성화 */
+@media (max-width: 900px){
+  body.info .data-frame{ display: none !important; }
+}
+
+/* 모바일에선 info 카드에 로컬 프레임 */
+@media (max-width: 900px){
+  body.info .info-wrap{ position: relative; }
+
+  /* 카드 바깥 윤곽선 (원하면 inset 간격 조정) */
+  body.info .info-wrap::before{
+    content:"";
+    position: absolute;
+    inset: -14px;                /* 카드 밖 여백, 필요시 -10 ~ -20px */
+    box-shadow: inset 0 0 0 14px var(--frame-color);
+    border-radius: 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 카드 내용이 프레임과 겹치지 않게 살짝 패딩 */
+  body.info .info-wrap{
+    padding: clamp(18px, 4vmin, 28px);
+  }
+}
