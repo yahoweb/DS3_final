@@ -1,0 +1,657 @@
+@font-face{
+  font-family:'ExposureTrial';
+  src: url('assets/fonts/ExposureTrial[-30].woff') format('woff');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+
+/* ===== Theme Vars ===== */
+:root{
+  --font:'ExposureTrial',ui-sans-serif,system-ui,-apple-system,Arial,sans-serif;
+  --bg:#f6f7f8;
+  --ink:#0b0b0b;
+  --muted:#6b7280;
+
+  /* background grid */
+  --grid-alpha: 0.14;
+  --grid-line-color: #eb1c26; /* 🔴 빨간 그리드 */
+
+  /* nav/appbar */
+  --appbar-h: 56px;
+
+  /* dataviz outline */
+  --frame-color:#00aeed;  /* 🔵 파란 프레임 */
+  --frame-thick:20px;
+
+  /* flip tiles (grid page) */
+  --flip-front:#fff200;
+  --flip-back:#ffffff;
+
+  /* crosswalk (공통 변수) */
+  --cw-stripe:140px;
+  --cw-gap:140px;
+  --cw-pad-x:clamp(24px, 4vw, 64px);
+  --cw-pad-b:6vh;
+}
+
+/* ===== Base ===== */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font)}
+
+/* sticky/frosted appbar */
+.appbar{
+  position:sticky; top:0; z-index:30;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 14px; background:#f7f7f7b3; backdrop-filter:saturate(120%) blur(6px);
+  border-bottom:1px solid #e9e9e9;
+}
+.brand a{ text-decoration:none; color:inherit; font-weight:900; letter-spacing:.02em }
+
+/* 헤더 안에서만 점 스타일 적용 */
+.appbar .steps{ display:flex; gap:8px }
+.appbar .steps .step-dot{
+  width:10px; height:10px; border-radius:50%; background:#c9c9c9; display:inline-block
+}
+.appbar .steps .step-dot.active{ background:#111 }
+.appbar .step-dot{ width:10px; height:10px; border-radius:50%; background:#ccc; display:inline-block; transition:all .2s ease }
+.appbar .step-dot:hover{ background:#999 }
+.appbar .step-dot.active{ background:#00aeed; transform:scale(1.3); box-shadow:0 0 0 2px #fff }
+
+.pagehost{ min-height:calc(100dvh - var(--appbar-h)); padding:24px; position:relative; z-index:2 }
+.center{ display:grid; place-items:center }
+
+/* titles */
+.title{ font-weight:900; font-size:clamp(44px,10vw,128px); line-height:1.05; text-align:center }
+.hint{ display:block; color:var(--muted); font-size:.45em; margin-top:.35rem; text-decoration:none }
+.pagetitle{ font-size:clamp(22px,4.4vw,38px); margin:0 0 12px; text-align:center }
+.muted{ color:var(--muted) }
+.textwide{ max-width:900px; margin-inline:auto }
+.bullets{ margin:0; padding-left:1.2rem }
+
+/* ===== Full-viewport faint 12×6 background grid (all pages) ===== */
+.bg-grid-canvas{
+  position:fixed; inset:0; pointer-events:none; z-index:1;
+  --line: var(--grid-line-color);
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size:
+    calc(100vw / 12) calc(100vh / 6),
+    calc(100vw / 12) calc(100vh / 6);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* ===== Data page: center 10×6 hold box ===== */
+.viz-hold{
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(83.333vw, 80vh * (5/3)); aspect-ratio:5/3;
+  background:#000; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,.2);
+  z-index:20; display:grid; place-items:center; color:#fff;
+}
+
+/* ===== Grid page: fullscreen flip overlay ===== */
+.grid-full{
+  position:fixed; inset:0; z-index:20;
+  display:grid; grid-template-columns:repeat(12,1fr); grid-template-rows:repeat(6,1fr);
+  gap:1px; background:var(--grid-line-color);
+  box-shadow:inset 0 0 0 1px var(--grid-line-color);
+  perspective:1000px;
+}
+.card{ position:relative; cursor:pointer; transform-style:preserve-3d; transition:transform .6s cubic-bezier(.2,.8,.2,1); border-radius:0 }
+.card.flip{ transform:rotateY(180deg) }
+.face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:0; background:var(--flip-front) }
+.face.back{ transform:rotateY(180deg); background:var(--flip-back) }
+
+/* ===== Bottom arrows ===== */
+.bottom-nav{
+  position:fixed; left:50%; bottom:32px; transform:translateX(-50%);
+  display:flex; gap:12px; z-index:100; opacity:.85; transition:opacity .25s ease;
+}
+.bottom-nav:hover{ opacity:1 }
+.bottom-nav .arrow{
+  width:52px; height:52px; border-radius:50%;
+  background:rgba(255,255,255,.88); color:#111; display:grid; place-items:center; text-decoration:none;
+  border:1px solid rgba(0,0,0,.08); font-size:20px; font-weight:700;
+  box-shadow:0 6px 20px rgba(0,0,0,.12); backdrop-filter:blur(6px);
+}
+
+/* ===== Team layout ===== */
+.team-container{
+  position:relative; display:flex; justify-content:space-around; align-items:flex-end;
+  gap:clamp(5vw, 10vw, 12vw); width:200%; height:10vh; transform:translateY(-30vh); z-index:2;
+}
+.member{ display:flex; flex-direction:column; align-items:center; text-align:center; max-width:420px }
+.member img{
+  width:100%; height:auto; max-height:58vh; object-fit:contain;
+  filter:drop-shadow(0 10px 40px rgba(0,0,0,.12));
+  transition:transform .4s ease, opacity .4s ease;
+}
+.member img:hover{ transform:scale(1.08); opacity:.9 }
+.member figcaption{ margin-top:10px; font-weight:700 }
+.member .meta{ font-size:.9rem; color:var(--muted) }
+@media (max-width:900px){
+  .team-container{ flex-direction:column; align-items:center; gap:36px; height:auto; transform:translateY(0); margin-top:40px }
+  .member img{ max-height:28vh }
+}
+
+/* ================================
+   🔵 Site Info(info.html) 전용 아웃라인
+================================ */
+body.info{ --frame-color:#00aeed; --frame-thick:20px }
+body.info .data-frame{
+  position:fixed; top:calc(var(--appbar-h) - 17px); left:0; right:0; bottom:0; z-index:5; pointer-events:none;
+}
+body.info .data-frame::before{ content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 var(--frame-thick) var(--frame-color) }
+@media (max-width:900px){ .pagehost{ padding:16px } }
+@media (max-width:600px){ .appbar{ position:static } }
+
+/* ================================
+   🟠 Animation(anim.html) 전용 아웃라인
+================================ */
+body.anim{ --frame-color:#f5911f; --frame-thick:20px }
+body.anim .data-frame{
+  position:fixed; top:calc(var(--appbar-h) - 17px); left:0; right:0; bottom:0; z-index:5; pointer-events:none;
+}
+body.anim .data-frame::before{ content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 var(--frame-thick) var(--frame-color) }
+body.anim .anim-holder{
+  position:fixed; top:calc(var(--appbar-h) + var(--frame-thick)); left:var(--frame-thick); right:var(--frame-thick); bottom:var(--frame-thick);
+  display:grid; place-items:center; z-index:10;
+}
+body.anim .anim-video{
+  display:block; width:100%; aspect-ratio:5/3; object-fit:contain; margin:auto;
+  transition:opacity 1s ease, transform 1s ease; opacity:0; transform:translateY(20px);
+}
+body.anim .anim-video.show{ opacity:1; transform:translateY(0) }
+
+/* ================================
+   🟡 Grid(grid.html) 전용 아웃라인
+================================ */
+body.grid{ --frame-color:#fff200; --frame-thick:20px }
+body.grid .data-frame{
+  position:fixed; top:calc(var(--appbar-h) - 17px); left:0; right:0; bottom:0; z-index:5; pointer-events:none;
+}
+body.grid .data-frame::before{ content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 var(--frame-thick) var(--frame-color) }
+body.grid .bottom-nav{ bottom:64px }
+
+/* ===== (참고) 기존 grid 전용 crosswalk 배경/트랙 — 필요 시 유지 ===== */
+body.grid .crosswalk-bg{
+  position:fixed; top:var(--appbar-h); left:0; width:100vw; height:calc(100vh - var(--appbar-h)); z-index:1;
+  background:
+    repeating-linear-gradient(
+      to right,
+      #fff 0,
+      #fff var(--cw-stripe),
+      #00aeed var(--cw-stripe),
+      #00aeed calc(var(--cw-stripe) + var(--cw-gap))
+    );
+}
+body.grid .crosswalk-lane{
+  position:fixed; top:var(--appbar-h); left:0; width:100vw; height:calc(100vh - var(--appbar-h)); z-index:2;
+  display:grid; align-items:end; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin;
+}
+body.grid .crosswalk-track{
+  height:100%; width:200vw;
+  display:flex; align-items:end; justify-content:flex-start;
+  gap:clamp(24px, 3vw, 56px); padding:6vh clamp(24px, 4vw, 64px); box-sizing:border-box;
+}
+body.grid .avatar{ width:clamp(120px, 10vw, 220px); display:grid; justify-items:center; text-align:center; scroll-snap-align:start }
+body.grid .avatar img{ width:100%; height:auto; object-fit:contain; filter:drop-shadow(0 10px 30px rgba(0,0,0,.15)); transition:transform .25s ease, opacity .25s ease }
+body.grid .avatar img:hover{ transform:translateY(-4px); opacity:.95 }
+body.grid .avatar .meta{ margin-top:8px; font-weight:700; color:var(--ink); font-size:.95rem }
+body.grid .crosswalk-lane::after{ content:""; position:absolute; inset:0; box-shadow:inset 0 -40px 80px rgba(0,0,0,.08); pointer-events:none }
+
+/* ===================================================== 
+   ✅ Crosswalk: 가로 박스 버전 (이 페이지만 사용)
+   - 풀스크린 레이어와 겹치지 않도록 .crosswalk-box 내부로 스코프
+   - 기존 body.crosswalk .cw(=fixed) 규칙을 absolute로 강제 덮어쓰기
+   - 마지막 캐릭터 잘림 방지: track = max-content + 끝 여유
+===================================================== */
+
+/* 기존 풀스크린 crosswalk 요소 비활성화(겹침 방지) */
+body.crosswalk .crosswalk-bg,
+body.crosswalk .crosswalk-lane,
+body.crosswalk .crosswalk-track,
+body.crosswalk .crosswalk-wrap { display:none !important; }
+
+/* 박스 컨테이너 */
+.crosswalk-box{
+  position: relative;
+  z-index: 12;
+  width: min(1200px, 92vw);
+  aspect-ratio: 16 / 6;
+  margin: calc(var(--appbar-h) + 24px) auto 96px;
+  background: #00aeed;
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.15);
+  overflow: hidden; /* 내부만 가로 스크롤 */
+}
+
+/* 내부 레이어: 기존 fixed 규칙을 무력화 */
+.crosswalk-box .cw{
+  position: absolute !important; /* ← fixed 덮기 */
+  inset: 0 !important;
+  z-index: 1 !important;
+  overflow: hidden !important;
+}
+
+/* 줄무늬 배경 (박스 내부) */
+.crosswalk-box .cw__bg{
+  position:absolute !important; inset:0 !important;
+  background:
+    repeating-linear-gradient(
+      to right,
+      #fff 0 var(--cw-stripe),
+      #00aeed var(--cw-stripe) calc(var(--cw-stripe) + var(--cw-gap))
+    ) !important;
+  opacity:.95 !important;
+  transform:none !important; /* ← fullscreen용 translateY 제거 */
+}
+
+/* 스크롤 레이어 */
+.crosswalk-box .cw__scroll{
+  position:absolute !important; inset:0 !important;
+  display:grid !important; align-items:end !important;
+  overflow-x:auto !important; overflow-y:hidden !important;
+  scrollbar-width:thin;
+  padding-bottom: max(env(safe-area-inset-bottom,0px), 0px);
+}
+
+/* 실제 트랙 (내용 너비만큼) */
+.crosswalk-box .cw__track{
+  height:100% !important;
+  width:max-content !important;               /* 마지막 캐릭터 안 잘림 */
+  display:flex !important; align-items:flex-end !important; justify-content:flex-start !important;
+  gap: clamp(24px, 3vw, 56px) !important;
+  padding: 0 var(--cw-pad-x) var(--cw-pad-b) !important;
+  box-sizing: border-box !important;
+  scroll-snap-type: x mandatory !important;
+}
+.crosswalk-box .cw__track::after{ content:""; flex:0 0 clamp(48px, 6vw, 96px) }
+
+/* 캐릭터 */
+body.crosswalk .char{
+  display:grid; justify-items:center; text-align:center; scroll-snap-align:start; cursor:pointer; user-select:none
+}
+body.crosswalk .char__img{
+  height:min(36vh, 300px); object-fit:contain;
+  filter:drop-shadow(0 8px 24px rgba(0,0,0,.12));
+  transition:transform .2s ease, opacity .2s ease;
+  transform-origin:bottom center;
+}
+body.crosswalk .char__img:hover{ transform:translateY(-4px); opacity:.95 }
+body.crosswalk .char__label{
+  margin-top:6px; padding:2px 8px; background:#fff; border:1px solid #eee; border-radius:8px; font-weight:800;
+}
+
+/* 딤 상태 */
+body.crosswalk .cw--dim .char{ opacity:.28; filter:grayscale(.2) }
+body.crosswalk .cw--dim .char.is-active{ opacity:1; filter:none }
+
+/* 모바일 전환 */
+@media (max-width:900px){
+  .crosswalk-box{ aspect-ratio:9 / 10 }
+}
+
+/* ===== Site Info Interactive Section ===== */
+body.info .info-interactive {
+  display: flex;
+  justify-content: center;
+  margin: 68px auto 100px;
+  max-width: min(1500px , 92vw);
+}
+body.info .info-wrap{
+  max-width: min(1400px, 92vw);
+}
+
+body.info .info-switch {
+  width: min(1400px, 92vw);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0,0,0,.12);
+  cursor: pointer;
+  transition: transform .3s ease;
+}
+
+body.info .info-switch:hover {
+  transform: scale(1.02);
+}
+
+body.info .info-switch img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: inherit;
+  transition: opacity .5s ease;
+}
+
+body.info .info-switch figcaption {
+  text-align: center;
+  font-size: .9rem;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* crossfade 이미지 박스 */
+.info-img{
+  position:relative; width:min(1300px, 92vw);
+  aspect-ratio:16/9; margin:18px auto 8px;
+  border:1px solid #ececec; border-radius:12px; overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.06);
+  cursor:pointer;
+}
+.info-img img{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; opacity:0; transition:opacity .5s ease;
+}
+.info-img img.show{ opacity:1; }
+
+.info-caption{ text-align:center; color:var(--muted); font-weight:600; }
+.info-hint{ text-align:center; color:#8b8f96; font-size:.9rem; margin-top:.25rem; }
+
+
+
+/* =====================================================
+   ✅ Crosswalk: 가로 박스 전용 오버라이드 (grid.html 전용)
+   - 전역 fixed 규칙을 이 페이지에서만 무력화 → 박스 내부로 재지정
+   - 풀스크린 레이어 완전 비활성화
+   - track 너비 max-content + 끝 여유 → 마지막 캐릭터 안 잘림
+===================================================== */
+
+/* 1) 이 페이지에서는 전역 fixed 규칙을 먼저 '중립화' */
+body.crosswalk .cw{
+  position: static !important;
+  top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
+  inset: auto !important;
+  z-index: auto !important;
+  overflow: visible !important;
+}
+body.crosswalk .cw__bg{
+  transform: none !important;
+}
+
+/* 2) 기존 풀스크린용 요소들은 완전히 꺼버림(겹침 방지) */
+body.crosswalk .crosswalk-bg,
+body.crosswalk .crosswalk-lane,
+body.crosswalk .crosswalk-track,
+body.crosswalk .crosswalk-wrap{
+  display: none !important;
+}
+
+/* 3) 박스 컨테이너 */
+.crosswalk-box{
+  width: 100vw;   /* ← 기존 1200 → 1600 으로 확대 */
+  aspect-ratio: 24 / 6;       /* ← 세로를 조금 줄여서 더 넓게 */
+  margin: calc(var(--appbar-h) + 24px) auto 96px;
+  background: #00aeed;
+  border-radius: 0;
+  box-shadow: 0 20px 50px rgba(0,0,0,.18);
+  overflow: hidden;
+}
+
+/* 4) 박스 내부 레이어를 다시 absolute로 재지정 */
+.crosswalk-box .cw{
+  position: absolute !important;  /* ← 박스 내부에 고정 */
+  inset: 0 !important;
+  z-index: 1 !important;
+  overflow: hidden !important;
+}
+
+/* 줄무늬 배경 (박스 내부) */
+.crosswalk-box .cw__bg {
+  position: absolute !important;
+  inset: 0 !important;
+  transform: none !important;
+  background: repeating-linear-gradient(
+    to right,
+    #fff 0 calc(var(--cw-stripe) / 2), /* 🔹 하얀 줄폭을 절반으로 줄임 */
+    #00aeed calc(var(--cw-stripe) / 2) calc(var(--cw-stripe) + var(--cw-gap))
+  ) !important;
+  opacity: .95 !important;
+}
+/* ✅ White stripe = 50% of total period */
+.crosswalk-box{
+  --cw-period: calc(var(--cw-stripe) + var(--cw-gap));
+}
+.crosswalk-box {
+  /* stripe + gap을 합쳐서 전체 패턴 길이 정의 */
+  --cw-period: calc(var(--cw-stripe) + var(--cw-gap));
+}
+
+.crosswalk-box .cw__bg {
+  background: repeating-linear-gradient(
+    to right,
+    #fff 0 calc(var(--cw-period) / 2),
+    #00aeed calc(var(--cw-period) / 2) var(--cw-period)
+  ) !important ;
+  opacity: .95 !important;
+  transform: none !important;
+}
+.crosswalk-box{ --cw-gap: var(--cw-stripe) !important; }
+/* 스크롤 레이어 */
+
+/* 실제 트랙 (내용 너비만큼) */
+.crosswalk-box .cw__track{
+  gap: clamp(40px, 4vw, 80px);   /* ← 캐릭터 간 간격 확대 */
+  padding: 0 6vw 5vh;            /* ← 내부 여백 약간 더 확보 */
+}
+/* 끝 여유: 스냅 시 끝 캐릭터 여백 확보 */
+.crosswalk-box .cw__track::after{
+  content: "";
+  flex: 0 0 clamp(48px, 6vw, 96px);
+}
+
+/* 캐릭터(박스 높이에 맞춰 안정적으로 보이게) */
+body.crosswalk .char{
+  display: grid; justify-items: center; text-align: center;
+  scroll-snap-align: start; cursor: pointer; user-select: none;
+}
+body.crosswalk .char__img{
+  height: min(42vh, 380px);   /* ← 기존 36vh, 300px → 42vh, 380px */
+  max-height: 380px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,.15));
+  transition: transform .25s ease, opacity .25s ease;
+  transform-origin: bottom center;
+}
+body.crosswalk .char__img:hover{ transform: translateY(-4px); opacity: .95 }
+body.crosswalk .char__label{
+  margin-top: 6px; padding: 2px 8px;
+  background: #fff; border: 1px solid #eee; border-radius: 8px; font-weight: 800;
+}
+
+/* 선택 시 디밍 */
+body.crosswalk .cw--dim .char{ opacity:.28; filter:grayscale(.2) }
+body.crosswalk .cw--dim .char.is-active{ opacity:1; filter:none }
+
+/* 모바일 비율 전환 */
+@media (max-width:900px){
+  .crosswalk-box{ aspect-ratio: 9 / 10 }
+}
+/* 🔥 Crosswalk — Large Box Version (override) */
+body.crosswalk .crosswalk-box{
+  /* 박스 자체를 거의 풀스크린 높이로 */
+  width: min(1800px, 96vw);
+  height: calc(100vh - var(--appbar-h) - 130px); /* 앱바 제외 + 하단 여백 */
+  aspect-ratio: auto;                             /* 기존 비율 잠금 해제 */
+  margin: calc(var(--appbar-h) + 20px) auto 0px; /* 위/아래 여백 조정 */
+  background: #00aeed;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.18);
+  overflow: hidden;
+  /* 줄무늬도 같이 키우고 싶으면 로컬 변수로 여기서 확장 */
+  --cw-stripe: 180px;
+  --cw-gap:    180px;
+}
+
+/* 내부 트랙 간격/여백도 대형에 맞게 확대 */
+body.crosswalk .crosswalk-box .cw__track{
+  height: 100%;
+  width: max-content;
+  display: flex; align-items: flex-end; justify-content: flex-start;
+  gap: clamp(48px, 5vw, 96px);      /* 캐릭터 사이 간격 ↑ */
+  padding: 0 6vw 6vh;               /* 좌우/하단 여백 ↑ */
+  box-sizing: border-box;
+  scroll-snap-type: x mandatory;
+}
+body.crosswalk .crosswalk-box .cw__track::after{
+  content:""; flex: 0 0 clamp(60px, 6vw, 120px); /* 마지막 잘림 방지 여유 ↑ */
+}
+
+/* 캐릭터 이미지 사이즈 업(박스 높이에 연동) */
+body.crosswalk .crosswalk-box .char__img{
+  height: min(70%, 520px);  /* 기존 36vh/300px → 대형 기준으로 확대 */
+  max-height: 520px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 34px rgba(0,0,0,.16));
+  transition: transform .25s ease, opacity .25s ease;
+  transform-origin: bottom center;
+}
+
+/* 모바일 세로형에선 살짝 낮춤 */
+@media (max-width: 900px){
+  body.crosswalk .crosswalk-box{
+    width: 98vw;
+    height: calc(100vh - var(--appbar-h) - 80px);
+    border-radius: 12px;
+  }
+  body.crosswalk .crosswalk-box .char__img{
+    height: min(62%, 420px);
+    max-height: 420px;
+  }
+}
+/* 🟦 Crosswalk Box: 중앙보다 위쪽 정렬 */
+body.crosswalk main.pagehost {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - var(--appbar-h) - 60px);
+  margin-top: var(--appbar-h);
+}
+
+body.crosswalk .crosswalk-box {
+  margin: 0 auto !important;
+  position: relative;
+  top: -10vh; /* 🔼 화면 세로 기준 위로 살짝 올림 (조정 가능: 4~10vh) */
+  transform: translateY(0);
+}
+
+/* ================================
+   🟦 Crosswalk — 대형 중앙형 + 타이틀 버전
+================================ */
+.crosswalk-box {
+  position: fixed !important;
+  top: calc(var(--appbar-h) + 60px) !important; /* 앱바 아래 */
+  left: 5vw !important;
+  right: 5vw !important;
+  bottom: 120px !important;                     /* 하단 네비 여유 */
+  width: 90vw !important;
+  height: calc(100vh - var(--appbar-h) - 180px) !important;
+  margin: 0 auto !important;
+  background: #00aeed;
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.18);
+  overflow: hidden !important;
+  z-index: 12 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+/* 🟡 상단 타이틀 */
+.crosswalk-title {
+  position: relative;
+  z-index: 20;
+  font-family: 'Helvetica Neue', sans-serif;
+  font-weight: 800;
+  font-size: clamp(28px, 3vw, 42px);
+  letter-spacing: 0.08em;
+  color: white;
+  text-transform: uppercase;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.25);
+}
+
+/* 내부 레이어는 박스에 맞춤 */
+.crosswalk-box .cw {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+}
+
+/* 줄무늬 배경 */
+.crosswalk-box .cw__bg {
+  position: absolute !important;
+  inset: 0 !important;
+  transform: none !important;
+  background: repeating-linear-gradient(
+    to right,
+    #fff 0 var(--cw-stripe),
+    #00aeed var(--cw-stripe) calc(var(--cw-stripe) + var(--cw-gap))
+  ) !important;
+  opacity: .95 !important;
+}
+
+/* 스크롤 영역 */
+.crosswalk-box .cw__scroll {
+  position: absolute !important;
+  inset: 0 !important;
+  display: grid !important;
+  align-items: end !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin !important;
+  padding-bottom: 2vh !important;
+}
+
+/* 트랙 */
+.crosswalk-box .cw__track {
+  height: 100% !important;
+  width: max-content !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  gap: clamp(24px, 3vw, 56px) !important;
+  padding: 6vh var(--cw-pad-x) var(--cw-pad-b) !important;
+  box-sizing: border-box !important;
+  scroll-snap-type: x mandatory !important;
+}
+
+/* 캐릭터 */
+.crosswalk-box .char__img {
+  height: 70% !important;
+  max-height: 420px !important;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,.12));
+  transition: transform .2s ease, opacity .2s ease;
+}
+/* Crosswalk Title — 도로 표지판 느낌 */
+.crosswalk-title {
+  position: absolute;
+  top: calc(var(--appbar-h) + 40px); /* 앱바 아래로 여유 있게 */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  pointer-events: none;
+  margin: 0;
+
+  /* 폰트 */
+  font-family: 'ExposureTrial', sans-serif;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+
+  /* 크기 및 스타일 */
+  font-size: clamp(28px, 3vw, 48px);
+  color: #111; /* 검정 텍스트 내부 */
+
+  /* 윤곽선 효과 (도로 표지판 느낌) */
+  -webkit-text-stroke: 2px #fff; /* 흰색 외곽선 */
+  
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.8),
+    0 2px 12px rgba(0, 0, 0, 0.25);
+
+  /* 살짝 입체감 */
+  transform: translateX(-50%) translateY(4px);
+}

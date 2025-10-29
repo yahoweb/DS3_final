@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TOMODACHI — How to</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root { --fade-bg:#ffffff; --fade-duration:.8s }
+    body{ opacity:0; background:var(--fade-bg); transition:opacity var(--fade-duration) ease }
+    body.fade-in{ opacity:1 } body.fade-out{ opacity:0 }
+
+    .howto-wrap{
+      position:relative; z-index:12;
+      max-width:min(1100px, 90vw);
+      margin: calc(var(--appbar-h) + 28px) auto 120px;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: clamp(16px, 4vw, 28px);
+    }
+    .howto-card{
+      background:#fff; color:#111;
+      border:1px solid #e9e9e9; border-radius:16px;
+      padding: clamp(16px, 3.5vmin, 28px);
+      box-shadow: 0 16px 60px rgba(0,0,0,.08);
+    }
+    .howto-card h3{ margin:0 0 10px; font-size:1.25rem; font-weight:900; }
+    .howto-card p{ line-height:1.7; margin:.25rem 0 .75rem }
+    .howto-list{ margin:.25rem 0 0; padding-left:1.1rem }
+    .howto-list li{ margin:.25rem 0 .35rem; line-height:1.6 }
+
+    @media (max-width: 900px){
+      .howto-wrap{ grid-template-columns: 1fr; margin-bottom: 96px }
+    }
+
+    .kbd{
+      display:inline-block; min-width:1.8em; text-align:center;
+      padding:.15em .45em; border:1px solid #ddd; border-radius:6px;
+      background:#fafafa; font-weight:700; font-size:.95em;
+    }
+
+    .tip{
+      margin-top:10px; padding:10px 12px; border-radius:12px;
+      border:1px dashed #e6e6e6; background:#fcfcfc; color:#333;
+    }
+  </style>
+</head>
+<script src="script.js"></script>
+<body class="howto">
+  <header class="appbar">
+    <div class="brand"><a href="index.html">TOMODACHI</a></div>
+    <nav class="steps" aria-label="Page steps">
+      <a class="step-dot" href="index.html" aria-label="Home"></a>
+      <a class="step-dot active" href="howto.html" aria-label="How To"></a>
+      <a class="step-dot" href="team.html" aria-label="Team"></a>
+      <a class="step-dot" href="info.html" aria-label="Site"></a>
+      <a class="step-dot" href="anim.html" aria-label="Data"></a>
+      <a class="step-dot" href="grid.html" aria-label="Grid"></a>
+    </nav>
+  </header>
+
+  <div class="bg-grid-canvas" aria-hidden="true"></div>
+  <div class="data-frame" aria-hidden="true"></div>
+
+  <main class="pagehost">
+    <h2 class="pagetitle">How to Experience</h2>
+
+    <section class="howto-wrap">
+      <article class="howto-card" role="region" aria-labelledby="quickstart">
+        <h3 id="quickstart">Quick Start</h3>
+        <ol class="howto-list">
+          <li>Use the bottom arrows to navigate through pages.</li>
+          <li><b>Team Page</b> — Click a member to reveal their information panel.</li>
+          <li><b>Site Page</b> — Click on the image box to switch between <em>Photo</em> and <em>Drawing</em>.</li>
+          <li><b>Data Page</b> — Detailed information about the data animation can be found in the <b>zine</b>.</li>
+          <li><b>Crosswalk</b> — Click on the character to reveal the description bar above.</li>
+        </ol>
+      </article>
+
+      <aside class="howto-card" role="region" aria-labelledby="controls">
+        <h3 id="controls">Controls & Shortcuts</h3>
+        <ul class="howto-list">
+          <li>Navigation: <b>← / →</b> arrows at the bottom</li>
+          <li>Keyboard: <span class="kbd">Enter</span> or <span class="kbd">Space</span> to select, <span class="kbd">Esc</span> to close</li>
+          <li>Crosswalk: <span class="kbd">←</span>/<span class="kbd">→</span> to move between characters</li>
+          <li>Image Toggle (Info): Click again to return to the photo</li>
+          <li>Mobile: All interactions can be performed by tapping</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="bottom-nav">
+    <a class="arrow prev" href="index.html" aria-label="Previous page">←</a>
+    <a class="arrow next" href="team.html" aria-label="Next page">→</a>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('fade-in');
+      document.querySelectorAll('a[href]').forEach(link => {
+        const url = link.getAttribute('href');
+        if (!url || url.startsWith('http') || url.startsWith('#')) return;
+        link.addEventListener('click', e => {
+          e.preventDefault();
+          document.body.classList.remove('fade-in');
+          document.body.classList.add('fade-out');
+          setTimeout(() => window.location.href = url, 500);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

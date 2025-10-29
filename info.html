@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TOMODACHI — Site Information</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root { --fade-bg:#ffffff; --fade-duration:.8s }
+    body{ opacity:0; background:var(--fade-bg); transition:opacity var(--fade-duration) ease }
+    body.fade-in{ opacity:1 } body.fade-out{ opacity:0 }
+
+    .info-wrap{
+      position:relative; z-index:12;
+      max-width:min(1000px, 86vw);
+      margin: calc(var(--appbar-h) + 24px) auto 96px;
+      background:#fff; color:#111;
+      border:1px solid #e9e9e9; border-radius:16px;
+      padding: clamp(16px, 3.5vmin, 28px);
+      box-shadow: 0 16px 60px rgba(0,0,0,.08);
+    }
+    .info-wrap h3{ margin:0 0 10px; font-size:1.4rem }
+    .info-wrap p{ line-height:1.7; margin:.25rem 0 .75rem }
+    
+  </style>
+</head>
+<script src="script.js"></script>
+<body class="info">
+  <header class="appbar">
+    <div class="brand"><a href="index.html">TOMODACHI</a></div>
+    <nav class="steps" aria-label="Page steps">
+      <a class="step-dot" href="index.html" aria-label="Home"></a>
+      <a class="step-dot" href="howto.html" aria-label="How To"></a>
+      <a class="step-dot" href="Team.html" aria-label="Team"></a> <!-- Team -> team -->
+      <a class="step-dot active" href="info.html" aria-label="Site"></a> <!-- 활성 페이지 -->
+      <a class="step-dot" href="anim.html" aria-label="Data"></a>
+      <a class="step-dot" href="grid.html" aria-label="Grid"></a>
+    </nav>
+  </header>
+
+  <div class="bg-grid-canvas" aria-hidden="true"></div>
+  <div class="data-frame" aria-hidden="true"></div>
+
+  <main class="pagehost">
+    <h2 class="pagetitle">Site Information</h2>
+    <section class="info-wrap">
+  <h3>Site Information</h3>
+  
+  <h3>Mathewson St.</h3>
+  <p>Our team chose the intersection near Maruichi because we often go there and enjoy people-watching.
+    <br>
+    We noticed many jaywalkers, which stood out to Gyuho and Sheryl since it’s uncommon in their home <br>
+     countries sparking our curiosity.
+   </p>
+  <!-- ⬇️ 크로스페이드 토글 박스 -->
+  <figure class="info-img" id="infoImgBox" role="button" tabindex="0" aria-label="Toggle photo and drawing">
+    <img id="imgS1" src="assets/S1.JPG" alt="Mathewson Street — Photo" class="show" />
+    <img id="imgS2" src="assets/S2.png"  alt="Mathewson Street — Drawing" />
+  </figure>
+  <figcaption class="info-caption" id="infoCap">
+  <p class="info-hint">Click on the image to switch to Photo ↔ Drawing.</p>
+
+
+    </section>
+
+    
+  </section>
+
+
+  </main>
+
+  <footer class="bottom-nav">
+    <a class="arrow prev" href="team.html" aria-label="Previous page">←</a>
+    <a class="arrow next" href="anim.html" aria-label="Next page">→</a>
+  </footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.body.classList.add('fade-in');
+    document.querySelectorAll('a[href]').forEach(a=>{
+      const url=a.getAttribute('href');
+      if(!url||url.startsWith('http')||url.startsWith('#')) return;
+      a.addEventListener('click', e=>{
+        e.preventDefault();
+        document.body.classList.remove('fade-in');
+        document.body.classList.add('fade-out');
+        setTimeout(()=>location.href=url,600);
+      });
+    });
+
+    // 🔁 Photo(S1) ↔ Drawing(S2) 크로스페이드 토글
+    const box = document.getElementById('infoImgBox');
+    const s1  = document.getElementById('imgS1'); // Photo (기본)
+    const s2  = document.getElementById('imgS2'); // Drawing
+    const cap = document.getElementById('infoCap');
+    let showingS1 = true;
+
+    function toggleImage(){
+      showingS1 = !showingS1;
+      if(showingS1){
+        s1.classList.add('show');
+        s2.classList.remove('show');
+        cap.textContent = 'Photo — Mathewson Street';
+        box.setAttribute('aria-label','Show Drawing');
+      }else{
+        s1.classList.remove('show');
+        s2.classList.add('show');
+        cap.textContent = 'Drawing — Mathewson Street';
+        box.setAttribute('aria-label','Show Photo');
+      }
+    }
+
+    box.addEventListener('click', toggleImage);
+    box.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' ') { e.preventDefault(); toggleImage(); }
+    });
+  });
+</script>
+</body>
+</html>

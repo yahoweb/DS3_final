@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TOMODACHI — Crosswalk</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    :root{
+      --cw-stripe: 140px;
+      --cw-gap:    140px;
+      --cw-pad-x:  clamp(24px, 4vw, 64px);
+      --cw-pad-b:  6vh;
+    }
+
+    /* ===== 기존 풀스크린 스코프 (그대로 둠) ===== */
+    body.crosswalk .cw {
+      position: fixed;
+      top: var(--appbar-h);
+      left: 0; right: 0; bottom: 0;
+      z-index: 10;
+      overflow: hidden;
+    }
+   /* ✨ 기존 body.crosswalk .cw__bg 를 이걸로 교체 */
+body.crosswalk .cw__bg {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(
+    to right,
+    #fff 0 50%,      /* 왼쪽 절반 흰색 */
+    #00aeed 50% 100% /* 오른쪽 절반 파랑 */
+  );
+  background-size: 280px 100%;  /* 한 사이클 폭 (원하면 200~400px로 조절) */
+  background-repeat: repeat;
+  opacity: .95;
+  transform: none;              /* 기존 translateY(14%) 제거 */
+}
+    @media (max-width:900px){
+      body.crosswalk .cw__bg { transform: translateY(22%); }
+    }
+    body.crosswalk .cw__scroll {
+      position: absolute; inset: 0;
+      overflow-x: auto; overflow-y: hidden;
+      display: grid; align-items: end;
+      scrollbar-width: thin;
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+    }
+    body.crosswalk .cw__track {
+      height: 100%;
+      display: flex; align-items: flex-end; justify-content: flex-start;
+      gap: clamp(24px, 3vw, 56px);
+      padding: 0 var(--cw-pad-x) var(--cw-pad-b);
+      box-sizing: border-box;
+      scroll-snap-type: x mandatory;
+    }
+    body.crosswalk .char {
+      display: grid; justify-items: center; text-align: center;
+      cursor: pointer; user-select: none;
+      scroll-snap-align: start;
+    }
+    body.crosswalk .char__img{
+      height: min(36vh, 300px);
+      object-fit: contain;
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,.12));
+      transition: transform .2s ease, opacity .2s ease;
+    }
+    body.crosswalk .char__img:hover{ transform: translateY(-4px); opacity: .95; }
+    body.crosswalk .char__label{
+      margin-top: 6px; padding: 2px 8px;
+      background: #fff; border: 1px solid #eee; border-radius: 8px;
+      font-weight: 800;
+    }
+    body.crosswalk .cw--dim .char{ opacity:.28; filter: grayscale(.2); }
+    body.crosswalk .cw--dim .char.is-active{ opacity:1; filter:none; }
+
+    body.crosswalk .assump {
+      position: sticky; top: var(--appbar-h);
+      z-index: 20;
+      transform: translateY(-8px); opacity: 0; pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    body.crosswalk .assump.is-show{ opacity:1; transform: translateY(0); pointer-events: auto; }
+    body.crosswalk .assump__card{
+      max-width: min(1100px, 92vw);
+      margin: 10px auto 0; padding: 12px 14px;
+      display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+      background: #fff; border: 1px solid #e8e8e8; border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.12);
+    }
+    body.crosswalk .assump__langs{ display: flex; gap: 6px; }
+    body.crosswalk .btn{
+      border: 1px solid #e2e2e2; background: #fff; border-radius: 999px;
+      padding: 6px 10px; font-weight: 800; cursor: pointer;
+    }
+    body.crosswalk .btn.is-active{ background:#111; color:#fff; border-color:#111; }
+    body.crosswalk .assump__name{ font-weight: 900; }
+    body.crosswalk .assump__text{ grid-column: 1 / -1; margin-top: 4px; line-height: 1.55; }
+
+    /* ===== ✅ 가로 박스 버전: 강제 오버라이드 ===== */
+    .crosswalk-box{
+      position: relative;
+      z-index: 12;
+      width: min(1200px, 92vw);
+      aspect-ratio: 16 / 6;
+      margin: calc(var(--appbar-h) + 24px) auto 96px;
+      background: #00aeed;
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.15);
+      overflow: hidden;
+    }
+
+    /* 🔒 fullscreen 규칙을 확실히 무효화 */
+    .crosswalk-box .cw{
+      position: absolute !important;
+      inset: 0 !important;
+      top: auto !important; right: auto !important; bottom: auto !important; left: auto !important;
+      z-index: 1 !important;
+      overflow: hidden !important;
+    }
+    .crosswalk-box .cw__bg{
+      position: absolute !important; inset: 0 !important;
+      background:
+        repeating-linear-gradient(
+          to right,
+          #fff 0 var(--cw-stripe),
+          #00aeed var(--cw-stripe) calc(var(--cw-stripe) + var(--cw-gap))
+        ) !important;
+      transform: none !important;   /* ← translateY 제거 */
+      opacity: .95 !important;
+    }
+    .crosswalk-box .cw__scroll{
+      position: absolute !important; inset: 0 !important;
+      display: grid !important; align-items: end !important;
+      overflow-x: auto !important; overflow-y: hidden !important;
+      scrollbar-width: thin;
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+    }
+    .crosswalk-box .cw__track{
+      height: 100% !important;
+      width: max-content !important;     /* ← 마지막 캐릭터 안 잘림 */
+      display: flex !important;
+      align-items: flex-end !important; justify-content: flex-start !important;
+      gap: clamp(24px, 3vw, 56px) !important;
+      padding: 0 var(--cw-pad-x) var(--cw-pad-b) !important;
+      box-sizing: border-box !important;
+      scroll-snap-type: x mandatory !important;
+    }
+
+    /* 박스 높이에 맞춰 캐릭터 스케일 */
+    .crosswalk-box .char__img{ height: 72%; max-height: 320px; }
+    @media (max-width:900px){
+      .crosswalk-box{ aspect-ratio: 9 / 10; }
+      .crosswalk-box .char__img{ height: 56%; }
+    }
+
+    
+  </style>
+</head>
+
+<body class="crosswalk">
+ 
+  <div class="bg-grid-canvas" aria-hidden="true"></div>
+  <div class="data-frame" aria-hidden="true"></div>
+
+  <header class="appbar">
+    <div class="brand"><a href="index.html">TOMODACHI</a></div>
+    <nav class="steps" aria-label="Page steps">
+      <a class="step-dot" href="index.html" aria-label="Home"></a>
+      <a class="step-dot" href="howto.html" aria-label="How To"></a>
+      <a class="step-dot" href="team.html" aria-label="Team"></a>
+      <a class="step-dot" href="info.html" aria-label="Site"></a>
+      <a class="step-dot" href="anim.html" aria-label="Data"></a>
+      <a class="step-dot active" href="grid.html" aria-label="Grid"></a>
+    </nav>
+  </header>
+<h2 class="crosswalk-title">CROSSWALK</h2>
+
+</section>
+  <div class="assump" id="assump">
+    <div class="assump__card">
+      <div class="assump__langs" role="tablist" aria-label="Language">
+        <button class="btn is-active" data-lang="kr" role="tab" aria-selected="true">KR</button>
+        <button class="btn" data-lang="en" role="tab">EN</button>
+        <button class="btn" data-lang="tw" role="tab">繁體</button>
+      </div>
+      <div class="assump__name" id="assumpName">Name</div>
+      <button class="btn" id="assumpClose" aria-label="Close">✕</button>
+      <div class="assump__text" id="assumpText"></div>
+    </div>
+  </div>
+
+  <!-- 횡단보도 -->
+  <main class="pagehost" aria-label="Crosswalk characters">
+    <section class="crosswalk-box">
+      <div class="cw" id="cw">
+        <div class="cw__bg" aria-hidden="true"></div>
+        <div class="cw__scroll">
+          <div class="cw__track" id="cwTrack" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bottom-nav">
+    <a class="arrow prev" href="anim.html" aria-label="Previous page">←</a>
+    <a class="arrow next" href="index.html" aria-label="Next page">→</a>
+  </footer>
+
+  <script>
+    /* ===== 데이터 ===== */
+    const CHAR_DATA = [
+      { id:'c1',  name:'No.1',   img:'assets/cha/1.png',
+        text:{ kr:'볼일<b>보러</b>가나?', en:'so<b> relatable.', tw:'蛤...不想回去上課...' } },
+      { id:'c2',  name:'No.2',  img:'assets/cha/2.png',
+        text:{ kr:'벌써 점심시간이 끝났어?.', en:'Hella normal.', tw:'哇!大卡車!' } },
+      { id:'c3',  name:'No.3', img:'assets/cha/3.png',
+        text:{ kr:'신선처럼 걷노', en:'That’s me walking through WeHo.', tw:'公車等等我!!' } },
+      { id:'c4',  name:'No.4',       img:'assets/cha/4.png',
+        text:{ kr:'좋을때다.', en:'No yea, that makes sense', tw:'ㄇㄨㄚˇㄐㄧˊ!' } },
+      { id:'c5',  name:'No.5',       img:'assets/cha/5.png',
+        text:{ kr:'퇴근하나… 부럽다', en:' Me trying to get off the 101', tw:'要期末報告了好緊張...' } },
+      { id:'c6',  name:'No.6',       img:'assets/cha/6.png',
+        text:{ kr:'천하태평이구만..', en:'Like they are for sure just working', tw:'大家都闖紅燈那我也闖一下好了...' } },
+      { id:'c7',  name:'No.7',       img:'assets/cha/7.png',
+        text:{ kr:'좋다...', en:'Yea, no…', tw:'誒!你怎麼在這?' } },
+      { id:'c8',  name:'No.8',       img:'assets/cha/8.png',
+        text:{ kr:'주민 바이브네, 가을타나봐', en:'Like I get it', tw:'咕咕咕!(有葉子!)' } },
+      { id:'c9',  name:'No.9',       img:'assets/cha/9.png',
+        text:{ kr:'어이쿠 늦는다, 뛰어라 뛰어', en:'Hella sketchy', tw:'唉...要求真多...' } },
+      { id:'c10', name:'No.10',       img:'assets/cha/10.png',
+        text:{ kr:'힘내쇼… 천천히 삽시다', en:'Low key I’m just trynna get home too', tw:'(趕快走趕快走...)' } },
+      { id:'c11', name:'No.11',       img:'assets/cha/11.png',
+        text:{ kr:'급하면 어제 오지', en:'Like… yea, no', tw:'沒關係啦反正我們 一堆人...' } },
+      { id:'c12', name:'No.12',       img:'assets/cha/12.png',
+        text:{ kr:'교수도 사람이니까..', en:'What are they trynna do?', tw:'煩死了!' } },
+    ];
+
+    /* ===== 렌더 ===== */
+    const track   = document.getElementById('cwTrack');
+    const cw      = document.getElementById('cw');
+    const assump  = document.getElementById('assump');
+    const nameEl  = document.getElementById('assumpName');
+    const textEl  = document.getElementById('assumpText');
+    const closeBt = document.getElementById('assumpClose');
+
+    track.innerHTML = CHAR_DATA.map((c,i)=>`
+      <figure class="char" data-idx="${i}" tabindex="0" aria-label="${c.name}">
+        <img class="char__img" src="${c.img}" alt="${c.name}">
+        <figcaption class="char__label">${c.name}</figcaption>
+      </figure>
+    `).join('');
+
+    /* 트랙 폭을 컨텐츠에 맞게(캐릭터 수 * 카드폭) 계산 */
+    function layoutTrack(){
+      const cards = Array.from(track.querySelectorAll('.char'));
+      if(!cards.length) return;
+      const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap) || 32;
+      const padX = parseFloat(getComputedStyle(track).paddingLeft) + parseFloat(getComputedStyle(track).paddingRight);
+      const cardW = cards[0].getBoundingClientRect().width;
+      const totalW = cards.length * cardW + (cards.length - 1) * gap + padX;
+      const containerW = cw.getBoundingClientRect().width;
+      track.style.width = Math.max(totalW, containerW) + 'px';
+    }
+    window.addEventListener('resize', layoutTrack);
+    window.addEventListener('load', layoutTrack);
+    layoutTrack();
+
+    /* 언어 스위치 */
+    let lang = 'kr';
+    document.querySelectorAll('.assump .btn[data-lang]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.assump .btn[data-lang]').forEach(b=>b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        lang = btn.dataset.lang;
+        const active = track.querySelector('.char.is-active');
+        if(active){
+          const i = +active.dataset.idx;
+          textEl.innerHTML = CHAR_DATA[i].text[lang] || '';
+        }
+      });
+    });
+
+    /* 선택/해제 */
+    function openAssump(item, el){
+      nameEl.textContent = item.name;
+      textEl.innerHTML   = item.text[lang] || '';
+      assump.classList.add('is-show');
+      cw.classList.add('cw--dim');
+      track.querySelectorAll('.char').forEach(n=>n.classList.remove('is-active'));
+      el.classList.add('is-active');
+    }
+    function closeAssump(){
+      assump.classList.remove('is-show');
+      cw.classList.remove('cw--dim');
+      track.querySelectorAll('.char').forEach(n=>n.classList.remove('is-active'));
+    }
+    closeBt.addEventListener('click', closeAssump);
+
+    track.querySelectorAll('.char').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const i = +el.dataset.idx;
+        openAssump(CHAR_DATA[i], el);
+      });
+      el.addEventListener('keydown', e=>{
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+      });
+    });
+
+    /* 좌우 화살표 네비 + ESC 닫기 */
+    document.addEventListener('keydown', e=>{
+      const active = track.querySelector('.char.is-active');
+      if(e.key === 'Escape'){ closeAssump(); return; }
+      if(!active) return;
+      let i = +active.dataset.idx;
+      if(e.key === 'ArrowRight') i = (i + 1) % CHAR_DATA.length;
+      if(e.key === 'ArrowLeft')  i = (i - 1 + CHAR_DATA.length) % CHAR_DATA.length;
+      if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+        const next = track.querySelector(`.char[data-idx="${i}"]`);
+        next?.scrollIntoView({behavior:'smooth', inline:'center'});
+        next?.click();
+      }
+    });
+  </script>
+</body>
+</html>

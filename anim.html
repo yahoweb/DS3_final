@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TOMODACHI — Data Animation</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root{ --fade-bg:#ffffff; --fade-duration:0.8s }
+    body{
+      opacity:0;
+      background:var(--fade-bg);
+      transition:opacity var(--fade-duration) ease, background-color var(--fade-duration) ease;
+    }
+    body.fade-in{ opacity:1 } 
+    body.fade-out{ opacity:0 }
+  </style>
+</head>
+<script src="script.js"></script>
+<body class="anim">
+  <header class="appbar">
+    <div class="brand"><a href="index.html">TOMODACHI</a></div>
+    <nav class="steps" aria-label="Page steps">
+      <a class="step-dot" href="index.html" aria-label="Home"></a>
+      <a class="step-dot" href="howto.html" aria-label="How To"></a>
+      <a class="step-dot" href="team.html" aria-label="Team"></a>
+      <a class="step-dot" href="info.html" aria-label="Site"></a>
+      <a class="step-dot active" href="anim.html" aria-label="Data"></a>
+      <a class="step-dot" href="grid.html" aria-label="Grid"></a>
+    </nav>
+  </header>
+
+  <div class="bg-grid-canvas" aria-hidden="true"></div>
+  <div class="data-frame" aria-hidden="true"></div>
+
+  <main class="pagehost">
+    <h2 class="pagetitle">Data Animation</h2>
+    <section class="viz-hold--flow" 
+             style="width:min(83.333vw, 80vh * (5/3)); aspect-ratio:5/3; margin:36px auto; display:grid; place-items:center;">
+      <video class="anim-video" autoplay muted loop playsinline>
+        <source src="assets/gaze animation.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+    </section>
+  </main>
+
+  <footer class="bottom-nav">
+    <a class="arrow prev" href="info.html" aria-label="Previous page">←</a>
+    <a class="arrow next" href="grid.html" aria-label="Next page">→</a>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.body.classList.add('fade-in');
+
+      // 페이지 전환 페이드 처리
+      document.querySelectorAll('a[href]').forEach(a=>{
+        const url=a.getAttribute('href');
+        if(!url || url.startsWith('http') || url.startsWith('#')) return;
+        a.addEventListener('click', e=>{
+          e.preventDefault();
+          document.body.classList.remove('fade-in');
+          document.body.classList.add('fade-out');
+          setTimeout(()=>location.href=url,600);
+        });
+      });
+
+      // 영상 등장 효과
+      const video = document.querySelector('.anim-video');
+      const reveal = ()=> video.classList.add('show');
+      (video.readyState >= 2) ? reveal() : video.addEventListener('loadeddata', reveal, {once:true});
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TOMODACHI — Title</title>
+
+  <!-- 폰트 프리로드 -->
+  <link rel="preload" as="font" href="assets/fonts/ExposureTrial[-50].woff2" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- 페이지 전환/히어로 인터랙션 -->
+  <style>
+    body { opacity:0; transition:opacity .8s ease }
+    body.fade-in { opacity:1 }
+    body.fade-out{ opacity:0; transition:opacity .6s ease }
+
+    .title.linklike{ cursor:pointer; text-decoration:none; transition:transform .25s ease, text-shadow .25s ease }
+    .title.linklike:hover,.title.linklike:focus{ transform:scale(1.05); text-shadow:0 4px 24px rgba(0,0,0,.12) }
+    .title .hint{ display:block; color:#6b7280; font-size:.45em; margin-top:.35rem; text-decoration:none }
+  </style>
+</head>
+<script src="script.js"></script>
+<body>
+  <header class="appbar">
+  <div class="brand"><a href="index.html">TOMODACHI</a></div>
+  <nav class="steps">
+    <a class="step-dot active" href="index.html" aria-label="Home"></a>
+    <a class="step-dot" href="howto.html" aria-label="How To"></a>
+    <a class="step-dot" href="team.html" aria-label="Team"></a>
+    <a class="step-dot" href="info.html" aria-label="Site"></a>
+    <a class="step-dot" href="anim.html" aria-label="Data"></a>
+    <a class="step-dot" href="grid.html" aria-label="Grid"></a>
+  </nav>
+</header>
+
+
+  <!-- 공통 12×6 배경 그리드 -->
+  <div class="bg-grid-canvas" aria-hidden="true"></div>
+
+  <main class="pagehost center">
+    <h1 id="heroTitle" class="title linklike" tabindex="0" role="link" aria-label="Go to How-to">
+      WALK<br>횡단<br>走路
+      <span class="hint">click to continue</span>
+    </h1>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('fade-in');
+      const t = document.getElementById('heroTitle');
+      const goNext = () => {
+        document.body.classList.remove('fade-in');
+        document.body.classList.add('fade-out');
+        setTimeout(() => location.href = 'howto.html', 600);
+      };
+      t?.addEventListener('click', goNext);
+      t?.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goNext(); }
+      });
+    });
+  </script>
+</body>
+</html>
